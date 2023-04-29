@@ -1,99 +1,82 @@
-class Poll():
+import re
+
+class Check:
+    def check_password(password):
+        if len(password) >= 8 and ("*" in password or "@" in password or "!" in password or "?" in password) and (re.match("^.*[A-Z].*$" , password) != None):
+            return 1
+        else:
+            return 0
+
+    def check_username(email):
+        if re.match("^[a-zA-Z0-9\_\.]+@[a-zA-Z0-9]+\.[a-zA-Z]{3}$" , email) != None:
+            return 1
+        else:
+            return 0
+
+
+class Session:
+    def __init__(self , user):
+        self.user = user
+
+    def add_poll(self , title : str , number_of_options : int , options : list[(str , int)] , user : User):
+        self.user.polls.append(Poll(title , number_of_options , options , user , multi_poll))
+
+    def active_or_dective_poll(self , id):
+        if Poll.Polls[id].deleted == 0:
+            if Poll.Polls[id].user == self.user:
+                Poll.Polls[id].active_or_dective = not(Poll.Polls[id].active_or_dective)
+
+    def del_poll(self , id):
+        if Poll.Polls[id].deleted == 0:
+            if Poll.Polls[id].user == self.user:
+                self.user.polls[id].deleted = 1
+    
+    def show_result_of_poll(self , id):
+        if Poll.Polls[id].deleted == 0:
+            print(Poll.Polls[id].title)
+            for option in Poll.polls[id].options:
+                print(option[0] + " --> " + str(option[1]))
+
+    def show_my_polls(self):
+        for poll in self.user.polls:
+            if Poll.Polls[id].deleted == 0:
+                print(poll.title)
+
+    def show_all_polls(self):
+        for poll in Poll.Polls:
+            if Poll.Polls[id].deleted == 0:
+                print(poll.title)
+
+    def participate_in_poll(self , id , option):
+        if Poll.Polls[id].deleted == 0:
+            Poll.Polls[id].options[option][1] += 1
+            Poll.Polls[id].users.append(self.user)
+
+
+class User:
+    Users : list['User'] = []
+
+    def __init__(self , email , password):
+        self.email = email
+        self.password = password
+        self.polls = []
+
+    def get_session(self , email , password):
+        if email == self.email and password == self.password:
+            return Session(self)
+
+
+class Poll:
     Polls : list['Poll'] = []
 
-    def __init__(self , title : str , number_of_options : int , options : list[str]):
+    def __init__(self , title : str , number_of_options : int , options : list[(str , int)] , user : User , multi_poll : bool):
         self.title = title
+        self.user = user
         self.number_of_options = number_of_options
         self.options = options
-        self.id = len(Poll.Polls) + 1
-        self.number_of_votes_for_options = [0 for i in range(self.number_of_options)]
+        self.id = len(Poll.Polls)
+        self.users = []
+        self.multi_poll = multi_poll
+        self.active_or_dective = 1
+        self.deleted = 0
         Poll.Polls.append(self)
-
-class CLI:
-    def load() -> None:
-        with open("Polls.txt" , "r") as poll_file:
-            for line in poll_file.readlines():
-                ls = line.split(",")
-                
-                title = ls[0]
-                
-                options = []
-
-                number_of_votes_for_options = []
-
-                number_of_options = 0
-
-                for i in range(1 , len(ls) - 1):
-                    number_of_options += 1
-
-                    tmp = ls[i].split("_")
-                    options.append(tmp[0])
-                    number_of_votes_for_options.append(int(tmp[1]))
-                
-                tmp = Poll(title , number_of_options , options)
-                tmp.number_of_votes_for_options = number_of_votes_for_options
-
-
-    def upload() -> None:
-        with open("Polls.txt" , "w") as poll_file:
-            for poll in Poll.Polls:
-                poll_file.write(poll.title + ",")
-                
-                for i in range(len(poll.options)):
-                    poll_file.write(poll.options[i] + "_" + str(poll.number_of_votes_for_options[i]) + ",")
-                
-                poll_file.write("\n")
-                
-
-    def run() -> None:
-        while True:
-            print("*** Please choose one of the following options:")
-            print("1. Creat a new poll.")
-            print("2. List of polls.")
-            print("3. Participate in a poll.")
-            print("4. Exit\n")
-            
-            command = input("Input a COMMAND : ")
-
-            print()
-
-            if command == "1":
-                title = input("Title : ")
-                number_of_options = int(input("Number of options : "))
-                options = []
-                for i in range(number_of_options):
-                    new_option = input("Option " + str(i + 1) + " : ")
-                    options.append(new_option)
-                
-                new_poll = Poll(title , number_of_options , options)
-                
-                print("Created!")
-
-            elif command == "2":
-                for poll in Poll.Polls:
-                    print(str(poll.id) + ". " + poll.title)
-
-            elif command == "3":
-                id = int(input("Enter poll id : "))
-                
-                print(Poll.Polls[id - 1].title)
-
-                for i in range(Poll.Polls[id - 1].number_of_options):
-                    print(str(i + 1) + ". " + Poll.Polls[id - 1].options[i])
-
-                vote = int(input("Your vote: "))
-
-                Poll.Polls[id - 1].number_of_votes_for_options[vote - 1] += 1
-
-                print("Submitted!")
-
-            elif command == "4":
-                return None
-        
-            print()      
-
-
-if __name__ == "__main__":
-    CLI.load()
-    CLI.run()
-    CLI.upload()
