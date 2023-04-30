@@ -14,6 +14,14 @@ class Check:
             return 0
 
 
+class Converter:
+    def option_converter(ls):
+        s = ""
+        for i in ls:
+            s = s + str(i[0]) + "_" + str(i[1]) + "/"
+        return s
+
+
 class Session:
     def __init__(self , user):
         self.user = user
@@ -94,10 +102,77 @@ class Poll:
 
 class CLI:
     def load():
-        pass
+        with open("Polls.txt" , "r") as polls_file:
+            polls = polls_file.readlines()
+            for poll in polls:
+                props = poll.split('|')
+                title = props[0]
+                user = props[1]
+                number_of_options = props[2]
+                options = props[3]
+                users = props[4]
+                active_or_dective = props[5]
+                deleted = props[6]
+
+                options = options.split("/")
+                options = options[0 : len(options) - 1]
+                for i in range(len(options)):
+                    options[i] = options[i].split("_")
+                    options[i][1] = int(options[i][1])
+
+                if users != "":
+                    users = users.split("/")
+                    users = users[0 : len(users) - 1]
+                else:
+                    users = []
+
+                tmp_poll = Poll(title , int(number_of_options) , options , int(user))
+                tmp_poll.active_or_dective = int(active_or_dective)
+                tmp_poll.deleted = int(deleted)
+                tmp_poll.options = options
+                tmp_poll.users = users
+
+        with open("Users.txt" , "r") as users_file:
+            users = users_file.readlines()
+            for user in users:
+                props = user.split('|')
+                email = props[0]
+                password = props[1]
+                polls = props[2]
+                
+                if polls != "":
+                    polls = polls.split('/')
+                    polls = polls[0 : len(polls) - 1]
+                else:
+                    polls = []
+                
+                tmp_user = User(email , password)
+                tmp_user.polls = polls
+
+        for user in User.Users:
+            for i in range(len(user.polls)):
+                user.polls[i] = Poll.Polls[int(user.polls[i])]
+
+        for poll in Poll.Polls:
+            poll.user = User.Users[int(poll.user)]
+            for i in range(len(poll.users)):
+                poll.users[i] = User.Users[int(poll.users[i])]
 
     def save():
-        pass
+        with open("Polls.txt" , "w") as polls_file:
+            for poll in Poll.Polls:
+                polls_file.write(poll.title + "|" + str(User.Users.index(poll.user)) + "|" + str(poll.number_of_options) + "|" + Converter.option_converter(poll.options) + "|")
+                for user in poll.users:
+                    polls_file.write(str(User.Users.index(user)) + "/")
+                polls_file.write("|" + str(poll.active_or_dective) + "|" + str(poll.deleted))
+                polls_file.write("\n")
+
+        with open("Users.txt" , "w") as users_file:
+            for user in User.Users:
+                users_file.write(user.email + "|" + user.password + "|")
+                for poll in user.polls:
+                    users_file.write(str(Poll.Polls.index(poll)) + "/")
+                users_file.write("\n")
 
     def load_account():
         print("1. Login")
@@ -120,7 +195,7 @@ class CLI:
                 password = input("Password : ")
                 if User.Users[user_number].password == password:
                     print("Logged in successfully!")
-                    CLI.run(User.Users[user_number].get_session(User.Users[user_number].get_session(User.Users[user_number].email , User.Users[user_number].password)))
+                    CLI.run(User.Users[user_number].get_session(User.Users[user_number].email , User.Users[user_number].password))
                     return None
 
                 print("Password isn't correct!")
@@ -181,7 +256,7 @@ class CLI:
             elif command == "3":
                 id = int(input("Enter poll id : "))
 
-                if Poll.Polls[id].deleted == 0 and Poll.Polls[id].active_or_dective == 1 and self.user not in Poll.Polls[id].users: 
+                if Poll.Polls[id].deleted == 0 and Poll.Polls[id].active_or_dective == 1 and session.user not in Poll.Polls[id].users: 
                     print(Poll.Polls[id].title)
                     for i in range(Poll.Polls[id].number_of_options):
                         print(str(i) + ". " + Poll.Polls[id].options[i][0])
