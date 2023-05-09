@@ -56,13 +56,13 @@ class Session:
 
     def show_my_polls(self):
         for poll in self.user.polls:
-            if Poll.Polls[id].deleted == 0 and poll.active_or_dective == 1:
-                print(poll.title)
+            if poll.deleted == 0 and poll.active_or_dective == 1:
+                print(str(poll.id) + " -> " + poll.title)
 
     def show_all_polls(self):
         for poll in Poll.Polls:
             if poll.deleted == 0 and poll.active_or_dective == 1:
-                print(poll.title)
+                print(str(poll.id) + " -> " + poll.title)
 
     def participate_in_poll(self , id , option):
         print(Poll.Polls[id].options[option][1])
@@ -279,7 +279,7 @@ class CLI:
                 session.show_result_of_poll(id)
 
             elif command == "7":
-                session.show_all_polls()
+                session.show_my_polls()
 
             elif command == "8":
                 return None
@@ -288,6 +288,9 @@ class CLI:
 
 
 if __name__ == "__main__":
-    CLI.load()
-    CLI.load_account()
-    CLI.save()
+    while True:
+        User.Users = []
+        Poll.Polls = []
+        CLI.load()
+        CLI.load_account()
+        CLI.save()
